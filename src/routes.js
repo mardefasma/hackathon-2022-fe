@@ -44,6 +44,7 @@ import RTL from "layouts/rtl";
 import Profile from "layouts/profile";
 import SignIn from "layouts/authentication/sign-in";
 import SignUp from "layouts/authentication/sign-up";
+import PDPDetail from "layouts/auction/detail";
 
 // Soft UI Dashboard React icons
 import Shop from "examples/Icons/Shop";
@@ -127,6 +128,16 @@ const routes = [
     route: "/authentication/sign-up",
     icon: <SpaceShip size="12px" />,
     component: <SignUp />,
+    noCollapse: true,
+  },
+  { type: "title", title: "Auction + Product", key: "auction-product" },
+  {
+    type: "collapse",
+    name: "Product Detail Page Detail",
+    key: "pdp",
+    route: "/auction/detail",
+    icon: <Document size="12px" />,
+    component: <PDPDetail />,
     noCollapse: true,
   },
 ];

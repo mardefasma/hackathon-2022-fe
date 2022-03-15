@@ -1,3 +1,5 @@
+/* eslint-disable jsx-a11y/no-static-element-interactions */
+/* eslint-disable jsx-a11y/click-events-have-key-events */
 /**
 =========================================================
 * Soft UI Dashboard React - v3.1.0
@@ -31,18 +33,26 @@ import SuiButton from "components/SuiButton";
 import CoverLayout from "layouts/authentication/components/CoverLayout";
 
 // Images
-import curved9 from "assets/images/curved-images/curved-6.jpg";
+import thorJPG from "assets/images/thor.jpg";
+
+import { useNavigate } from "react-router-dom";
 
 function SignIn() {
   // const [rememberMe, setRememberMe] = useState(true);
 
   // const handleSetRememberMe = () => setRememberMe(!rememberMe);
 
+  const navigate = useNavigate();
+
+  function handleClickLogin() {
+    navigate("/auction/detail");
+  }
+
   return (
     <CoverLayout
       title="Login Lelang"
       description="Masukkan email dan password anda"
-      image="https://www.wowkeren.com/display/images/photo/2018/07/28/00218690.jpg"
+      image={thorJPG}
     >
       <SuiBox component="form" role="form">
         <SuiBox mb={2}>
@@ -62,9 +72,11 @@ function SignIn() {
           <SuiInput type="password" placeholder="Password" />
         </SuiBox>
         <SuiBox mt={4} mb={1}>
-          <SuiButton variant="gradient" color="info" fullWidth>
-            sign in
-          </SuiButton>
+          <div onClick={handleClickLogin}>
+            <SuiButton variant="gradient" color="info" fullWidth>
+              Login
+            </SuiButton>
+          </div>
         </SuiBox>
       </SuiBox>
     </CoverLayout>
