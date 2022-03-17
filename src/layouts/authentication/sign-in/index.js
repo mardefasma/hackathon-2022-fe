@@ -25,9 +25,9 @@ Coded by www.creative-tim.com
 
 // Soft UI Dashboard React components
 import SuiBox from "components/SuiBox";
-import SuiTypography from "components/SuiTypography";
-import SuiInput from "components/SuiInput";
-import SuiButton from "components/SuiButton";
+// import SuiTypography from "components/SuiTypography";
+// import SuiInput from "components/SuiInput";
+// import SuiButton from "components/SuiButton";
 
 // Authentication layout components
 import CoverLayout from "layouts/authentication/components/CoverLayout";
@@ -36,17 +36,50 @@ import CoverLayout from "layouts/authentication/components/CoverLayout";
 import thorJPG from "assets/images/thor.jpg";
 
 import { useNavigate } from "react-router-dom";
+import { useCallback } from "react";
+// import { getUserData } from "helper/api";
+import { Button, FormControl, Input, InputLabel } from "@mui/material";
+// import { Button } from "@mui/material";
 
 function SignIn() {
-  // const [rememberMe, setRememberMe] = useState(true);
-
-  // const handleSetRememberMe = () => setRememberMe(!rememberMe);
-
   const navigate = useNavigate();
 
-  function handleClickLogin() {
-    navigate("/auction/detail");
-  }
+  const getUserDetail = useCallback((event) => {
+    event.preventDefault();
+
+    const body = JSON.stringify({
+      username: event.target.username.value,
+      password: event.target.password.value,
+    });
+
+    fetch(`http://localhost:8080/login`, {
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      method: "POST",
+      body,
+    })
+      .then((res) => res.json())
+      .then((result) => {
+        console.log("result", result);
+        sessionStorage.setItem("userID", result.ID);
+        switch (result.UserType) {
+          case 0:
+            console.log("bidder");
+            navigate("/auction/detail?productID=1");
+            break;
+
+          default:
+            console.log("seller");
+            navigate("dashboard");
+            break;
+        }
+      })
+      .catch((err) => {
+        console.log("catch", err);
+      });
+  });
 
   return (
     <CoverLayout
@@ -54,31 +87,23 @@ function SignIn() {
       description="Masukkan email dan password anda"
       image={thorJPG}
     >
-      <SuiBox component="form" role="form">
+      <form onSubmit={getUserDetail}>
         <SuiBox mb={2}>
-          <SuiBox mb={1} ml={0.5}>
-            <SuiTypography component="label" variant="caption" fontWeight="bold">
-              Email
-            </SuiTypography>
-          </SuiBox>
-          <SuiInput type="email" placeholder="Email" />
+          <FormControl>
+            <InputLabel>Username {sessionStorage.getItem("user_id")}</InputLabel>
+            <Input id="username" name="username" />
+          </FormControl>
         </SuiBox>
         <SuiBox mb={2}>
-          <SuiBox mb={1} ml={0.5}>
-            <SuiTypography component="label" variant="caption" fontWeight="bold">
-              Password
-            </SuiTypography>
-          </SuiBox>
-          <SuiInput type="password" placeholder="Password" />
+          <FormControl>
+            <InputLabel>Password</InputLabel>
+            <Input id="password" type="password" name="password" />
+          </FormControl>
         </SuiBox>
         <SuiBox mt={4} mb={1}>
-          <div onClick={handleClickLogin}>
-            <SuiButton variant="gradient" color="info" fullWidth>
-              Login
-            </SuiButton>
-          </div>
+          <Button type="submit">Login</Button>
         </SuiBox>
-      </SuiBox>
+      </form>
     </CoverLayout>
   );
 }

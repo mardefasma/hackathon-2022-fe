@@ -1,3 +1,5 @@
+/* eslint-disable no-unused-vars */
+/* eslint-disable prettier/prettier */
 // @mui material components
 import Grid from "@mui/material/Grid";
 // import Card from "@mui/material/Card";
@@ -47,12 +49,120 @@ import {
   InputLabel,
   OutlinedInput,
   InputAdornment,
+  Snackbar,
+  Alert,
+  Input,
 } from "@mui/material";
 import Countdown from "react-countdown";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 
-function Overview() {
-  const productImageURL =
-    "https://cdn0-production-images-kly.akamaized.net/u_9rueZlzAXmS7PiI1LrthnQ-oE=/1200x675/smart/filters:quality(75):strip_icc():format(jpeg)/kly-media-production/medias/2754932/original/005940800_1552970791-fotoHL_kucing.jpg";
+function PDPDetail() {
+  const [open, setOpen] = useState(false);
+  const [currentBid, setCurrentBid] = useState(0);
+  const [wantToBid, setWantToBid] = useState(0);
+  const [productImageURL, setProductImageURL] = useState("");
+  const [productName, setProductName] = useState("");
+  const [auctionMultiplier, setAuctionMultiplier] = useState(0);
+  const [auctionWinnerUserID, setAuctionWinnerUserID] = useState(0);
+  const [countdownRemaining, setCountdownRemaining] = useState(0);
+  const [highestBidderUserID, setHighestBidderUserID] = useState(0);
+  const [highestBidderUsername, setHighestBidderUsername] = useState("");
+  const [runningCountdown, setRunningCountdown] = useState(false);
+  const timeNow = useRef(Date.now())
+  // let countdownRemaining = 0;
+
+  const [searchParams] = useSearchParams();
+  console.log(searchParams.get("productID"))
+  const productID = searchParams.get("productID");
+  const UserID = sessionStorage.getItem("userID");
+  console.log(productID, UserID)
+
+  const handleClick = () => {
+    setOpen(true);
+  };
+
+  const onSubmitBidAmount = useCallback((event) => {
+    event.preventDefault();
+
+    const body = JSON.stringify({
+      UserID: parseInt(UserID, 10),
+      ProductID: parseInt(productID, 10),
+      Amount: parseInt(event.target.amount.value, 10),
+    });
+
+    console.log("amount", event.target.amount.value)
+    fetch(`http://localhost:8080/auction/bid`, {
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      method: "POST",
+      body,
+    })
+      .then((res) => res.json())
+      .then((result) => {
+        console.log("result", result);
+        setOpen(true);
+      })
+      .catch((err) => {
+        console.log("catch", err);
+      });
+  });
+
+  const handleClose = (event, reason) => {
+    if (reason === "clickaway") {
+      return;
+    }
+
+    setOpen(false);
+  };
+
+  const setProduct = useCallback((product) => {
+    setProductImageURL(product.ImageURL)
+    setProductName(product.ProductName)
+  }, []);
+
+  const setAuction = useCallback((auction) => {
+    setAuctionMultiplier(auction.Multiplier);
+    setAuctionWinnerUserID(auction.WinnerUserID);
+  }, []);
+
+  const setHighestBidder = useCallback((highestBidder) => {
+    setHighestBidderUserID(highestBidder.ID)
+    setHighestBidderUsername(highestBidder.Username)
+  }, [])
+
+  async function getProduct() {
+    await fetch(`http://localhost:8080/get/auction/detail?product_id=${productID}&user_id=${UserID}`)
+      .then((res) => res.json())
+      .then((result) => {
+        console.log("result", result);
+        const { ProductDetail } = result;
+        console.log("ProductDetail", ProductDetail);
+        const { Product, Auction, HighestBidder, Countdown: CountdownLeft } = ProductDetail
+        console.log(Product.ImageURL)
+        setProduct(Product);
+        setAuction(Auction);
+        setHighestBidder(HighestBidder);
+        console.log(Date.now() + (CountdownLeft * 1000))
+        setCountdownRemaining(CountdownLeft);
+        setRunningCountdown(true)
+      })
+      .catch((err) => {
+        console.log("catch", err);
+      });
+  }
+
+  useEffect(() => {
+    getProduct();
+  }, []);
+
+  const renderCountdown = () => (
+    <Countdown date={Date.now() + countdownRemaining}>
+      <Chip label="Dah Abis" color="secondary" />
+    </Countdown>
+  )
 
   return (
     <DashboardLayout>
@@ -67,7 +177,7 @@ function Overview() {
               />
             </CardContent>
           </Grid>
-          <Grid item xs={8}>
+          <Grid item xs={4}>
             <Card variant="outlined">
               <CardContent>
                 <Typography sx={{ mb: 1.5 }} color="text.secondary">
@@ -77,27 +187,43 @@ function Overview() {
                   Pet Shop Kekurangan Dana
                 </Typography>
                 <Typography variant="h5" component="div">
-                  Kucing Tapi Buang Duit
+                  {productName}
                 </Typography>
-                <Countdown date={Date.now() + 10000} />
+                <Typography variant="h4" component="div">
+                  Rp. {currentBid}
+                </Typography>
+                <div>
+                  {countdownRemaining > 0 ? renderCountdown() : null}
+                </div>
                 <Stack direction="row" spacing={1}>
-                  <Chip label="Bidding" color="primary" variant="outlined" />
-                  <Chip label="Highest Bidder" color="success" variant="outlined" />
-                  <Chip label="Ma**e Fa**a" color="success" />
+                  {highestBidderUserID !== UserID ? <Chip label="Bidding" color="primary" variant="outlined" /> : null}
+                  {highestBidderUserID === UserID ? <Chip label="Highest Bidder" color="success" variant="outlined" /> : null}
+                  {highestBidderUserID !== 0 ? <Chip label={highestBidderUsername} color="success" /> : null}
                 </Stack>
               </CardContent>
               <CardActions>
-                <FormControl sx={{ m: 1 }}>
-                  <InputLabel htmlFor="outlined-adornment-amount">Amount</InputLabel>
-                  <OutlinedInput
-                    id="outlined-adornment-amount"
-                    value={1000000}
-                    // onChange={handleChange("amount")}
-                    startAdornment={<InputAdornment position="start">Rp.</InputAdornment>}
-                    label="Bid"
-                  />
-                </FormControl>
-                <Button size="small">Bid</Button>
+                <Typography sx={{ fontSize: 14 }} color="text.secondary" gutterBottom>
+                  Multipliernya: {auctionMultiplier}
+                </Typography>
+                <form onSubmit={onSubmitBidAmount}>
+                  <FormControl>
+                    <InputLabel>Amount </InputLabel>
+                    <Input id="amount" name="amount" />
+                  </FormControl>
+                  <Button size="small" type="submit">
+                    Bid
+                  </Button>
+                </form>
+                <Snackbar
+                  anchorOrigin={{ vertical: "top", horizontal: "center" }}
+                  open={open}
+                  autoHideDuration={6000}
+                  onClose={handleClose}
+                >
+                  <Alert onClose={handleClose} severity="success" sx={{ width: "100%" }}>
+                    THANK YOU!!! You success bidding this item
+                  </Alert>
+                </Snackbar>
               </CardActions>
             </Card>
           </Grid>
@@ -109,4 +235,4 @@ function Overview() {
   );
 }
 
-export default Overview;
+export default PDPDetail;
