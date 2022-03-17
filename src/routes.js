@@ -43,7 +43,7 @@ import Dashboard from "layouts/dashboard";
 // import RTL from "layouts/rtl";
 // import Profile from "layouts/profile";
 import SignIn from "layouts/authentication/sign-in";
-import SignUp from "layouts/authentication/sign-up";
+// import SignUp from "layouts/authentication/sign-up";
 import PDPDetail from "layouts/auction/detail";
 import AuctionList from "layouts/auction/list";
 import AuctionAdd from "layouts/auction/add";
@@ -123,25 +123,16 @@ const routes = [
     component: <SignIn />,
     noCollapse: true,
   },
-  {
-    type: "invisible",
-    name: "Sign Up",
-    key: "sign-up",
-    route: "/authentication/sign-up",
-    icon: <SpaceShip size="12px" />,
-    component: <SignUp />,
-    noCollapse: true,
-  },
+  // {
+  //   type: "invisible",
+  //   name: "Sign Up",
+  //   key: "sign-up",
+  //   route: "/authentication/sign-up",
+  //   icon: <SpaceShip size="12px" />,
+  //   component: <SignUp />,
+  //   noCollapse: true,
+  // },
   { type: "title", title: "Auction + Product", key: "auction-product" },
-  {
-    type: "collapse",
-    name: "Product Detail Page Detail",
-    key: "pdp",
-    route: "/auction/{id}",
-    icon: <Document size="12px" />,
-    component: <PDPDetail />,
-    noCollapse: true,
-  },
   {
     type: "invisible",
     name: "Add Auction",
@@ -159,6 +150,24 @@ const routes = [
     route: "/auction/list",
     icon: <Document size="12px" />,
     component: <AuctionList />,
+    noCollapse: true,
+  },
+  {
+    type: "collapse",
+    name: "Product Detail Page Detail",
+    key: "pdp_detail",
+    route: "/auction/detail?productID={productID}",
+    icon: <Document size="12px" />,
+    component: <PDPDetail />,
+    noCollapse: true,
+  },
+  {
+    type: "collapse",
+    name: "PDP Detail Dummy",
+    key: "pdp_detail_dummy",
+    route: "/auction/detail",
+    icon: <Document size="12px" />,
+    component: <PDPDetail />,
     noCollapse: true,
   },
 ];
