@@ -1,3 +1,5 @@
+/* eslint-disable prettier/prettier */
+
 /**
 =========================================================
 * Soft UI Dashboard React - v3.1.0
@@ -71,18 +73,15 @@ function DefaultBlogCard({ product, action }) {
               )}
             </SuiBox>
             <SuiTypography variant="body2" component="p" color="text">
-              {product.status}
-            </SuiTypography>
-            <SuiTypography variant="body2" component="p" color="text">
-              {product.current_bid}
+              Bid {product.current_bid}
             </SuiTypography>
             {/* <SuiTypography variant="body2" component="p" color="text">
               {product.highest_bidder}
             </SuiTypography> */}
             <Stack direction="row" spacing={1}>
-              <Chip label="Bidding" color="primary" variant="outlined" />
-              <Chip label="Highest Bidder" color="success" variant="outlined" />
-              <Chip label="Ma**e Fa**a" color="success" />
+              {product.status === "Bidding" ? 
+                <Chip label="Bidding" color="primary" variant="outlined" /> 
+              : null}
             </Stack>
           </SuiBox>
         </Grid>

@@ -132,9 +132,9 @@ const routes = [
   //   component: <SignUp />,
   //   noCollapse: true,
   // },
-  { type: "title", title: "Auction + Product", key: "auction-product" },
+  // { type: "title", title: "Auction + Product", key: "auction-product" },
   {
-    type: "invisible",
+    type: "invinsible",
     name: "Add Auction",
     key: "add-auction",
     route: "/auction/add",
@@ -153,7 +153,7 @@ const routes = [
     noCollapse: true,
   },
   {
-    type: "collapse",
+    type: "invinsible",
     name: "Product Detail Page Detail",
     key: "pdp_detail",
     route: "/auction/detail?productID={productID}",
@@ -162,7 +162,7 @@ const routes = [
     noCollapse: true,
   },
   {
-    type: "collapse",
+    type: "invinsible",
     name: "PDP Detail Dummy",
     key: "pdp_detail_dummy",
     route: "/auction/detail",

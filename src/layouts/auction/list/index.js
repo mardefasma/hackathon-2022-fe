@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 /**
 =========================================================
 * Soft UI Dashboard React - v3.1.0
@@ -30,10 +31,42 @@ import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import Footer from "examples/Footer";
 import DefaultBlogCard from "examples/Cards/BlogCards/DefaultBlogCard";
 
+import React, { useEffect, useState } from 'react';
 // Data
 
 function Tables() {
   const sortType = 0;
+  const [ auctionList, setAuctionList ] = useState([]);
+  const UserID = sessionStorage.getItem("userID");
+
+
+  async function getAuctions() {
+    await fetch(`http://localhost:8080/get/auction/list?&user_id=${UserID}`)
+      .then((res) => res.json())
+      .then((result) => {
+        setAuctionList(result.ProductDetail)
+      })
+      .catch((err) => {
+        console.log("catch", err);
+      });
+  }
+console.log(auctionList)
+  useEffect(() => {
+    getAuctions();
+  }, []);
+
+  const listItems = auctionList.map((x) => 
+      <DefaultBlogCard
+        product={{
+          image: x.Product.ImageURL,
+          name: x.Product.ProductName,
+          status: x.Auction.Status === 1 ? "Bidding" : "No Bid",
+          current_bid: x.HighestBid,
+          highest_bidder: x.HighestBid,
+        }}
+        action={{ type: "internal", route: "/auction/detail?10" }}
+      />
+  );
 
   return (
     <DashboardLayout>
@@ -66,28 +99,7 @@ function Tables() {
         </SuiButton>
       </Box>
       <SuiBox py={3}>
-        <DefaultBlogCard
-          product={{
-            image: "https://bit.ly/3kDZgRd",
-            name: "Mathew Glock",
-            status: "Bidding",
-            current_bid: "50.000",
-            highest_bidder: "100.000",
-          }}
-          action={{ type: "internal", route: "/auction/10" }}
-        />
-      </SuiBox>
-      <SuiBox py={3}>
-        <DefaultBlogCard
-          product={{
-            image: "https://bit.ly/3kDZgRd",
-            name: "Mathew Glock 2",
-            status: "Bidding",
-            current_bid: "50.000",
-            highest_bidder: "100.000",
-          }}
-          action={{ type: "internal", route: "/auction/11" }}
-        />
+        <div>{listItems}</div>
       </SuiBox>
       <Footer />
     </DashboardLayout>
