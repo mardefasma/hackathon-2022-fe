@@ -64,6 +64,7 @@ function DashboardNavbar({ absolute, light, isMini }) {
   const { miniSidenav, transparentNavbar, fixedNavbar, openConfigurator } = controller;
   const [openMenu, setOpenMenu] = useState(false);
   const route = useLocation().pathname.split("/").slice(1);
+  const UserID = sessionStorage.getItem("userID");
 
   useEffect(() => {
     // Setting the navbar type
@@ -154,24 +155,38 @@ function DashboardNavbar({ absolute, light, isMini }) {
               />
             </SuiBox>
             <SuiBox color={light ? "white" : "inherit"}>
-              <Link to="/authentication/sign-in">
-                <IconButton sx={navbarIconButton} size="small">
-                  <Icon
-                    sx={({ palette: { dark, white } }) => ({
-                      color: light ? white.main : dark.main,
-                    })}
-                  >
-                    account_circle
-                  </Icon>
-                  <SuiTypography
-                    variant="button"
-                    fontWeight="medium"
-                    color={light ? "white" : "dark"}
-                  >
-                    Sign in
-                  </SuiTypography>
-                </IconButton>
-              </Link>
+              {UserID ? (
+                <Link to="/authentication/sign-in">
+                  <IconButton sx={navbarIconButton} size="small">
+                    <SuiTypography
+                      variant="button"
+                      fontWeight="medium"
+                      color={light ? "white" : "dark"}
+                    >
+                      Logout
+                    </SuiTypography>
+                  </IconButton>
+                </Link>
+              ) : (
+                <Link to="/authentication/sign-in">
+                  <IconButton sx={navbarIconButton} size="small">
+                    <Icon
+                      sx={({ palette: { dark, white } }) => ({
+                        color: light ? white.main : dark.main,
+                      })}
+                    >
+                      account_circle
+                    </Icon>
+                    <SuiTypography
+                      variant="button"
+                      fontWeight="medium"
+                      color={light ? "white" : "dark"}
+                    >
+                      Sign in
+                    </SuiTypography>
+                  </IconButton>
+                </Link>
+              )}
               <IconButton
                 size="small"
                 color="inherit"

@@ -16,6 +16,7 @@ import SuiBox from "components/SuiBox";
 // Soft UI Dashboard React examples
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import Footer from "examples/Footer";
+import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 // import ProfileInfoCard from "examples/Cards/InfoCards/ProfileInfoCard";
 // import ProfilesList from "examples/Lists/ProfilesList";
 // import DefaultProjectCard from "examples/Cards/ProjectCards/DefaultProjectCard";
@@ -55,43 +56,76 @@ import {
 } from "@mui/material";
 import Countdown from "react-countdown";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
+import { onSnapshot, collection } from "firebase/firestore";
+import firestoreDB from "../../../firebase";
 
 function PDPDetail() {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(sessionStorage.getItem("isSuccessBidNotif") === "true");
+  const [msgNotif, setMsgNotif] = useState("");
+  const [severityNotif, setSeverityNotif] = useState("");
   const [currentBid, setCurrentBid] = useState(0);
   const [wantToBid, setWantToBid] = useState(0);
   const [productImageURL, setProductImageURL] = useState("");
   const [productName, setProductName] = useState("");
   const [auctionMultiplier, setAuctionMultiplier] = useState(0);
+  const [auctionID, setAuctionID] = useState(0);
+  const [auctionStatus, setAuctionStatus] = useState(0);
   const [auctionWinnerUserID, setAuctionWinnerUserID] = useState(0);
   const [countdownRemaining, setCountdownRemaining] = useState(0);
   const [highestBidderUserID, setHighestBidderUserID] = useState(0);
   const [highestBidderUsername, setHighestBidderUsername] = useState("");
+  const [highestBidAmount, setHighestBidAmount] = useState(0);
   const [runningCountdown, setRunningCountdown] = useState(false);
   const timeNow = useRef(Date.now())
-  // let countdownRemaining = 0;
+  const navigate = useNavigate();
 
   const [searchParams] = useSearchParams();
-  console.log(searchParams.get("productID"))
   const productID = searchParams.get("productID");
   const UserID = sessionStorage.getItem("userID");
+
+  if (!UserID) {
+    navigate("/authentication/sign-in")
+  }
   console.log(productID, UserID)
 
-  const handleClick = () => {
-    setOpen(true);
+  const handleClose = (event, reason) => {
+    if (reason === "clickaway") {
+      return;
+    }
+
+    setOpen(false);
+
+    if (severityNotif === "success") {
+      window.location.reload();
+    }
   };
 
   const onSubmitBidAmount = useCallback((event) => {
     event.preventDefault();
+    const amountBid = event.target.amount.value;
+
+    if (amountBid <= currentBid) {
+      setMsgNotif("Jumlah tidak boleh kurang atau sama dengan current bid");
+      setSeverityNotif("error")
+      setOpen(true);
+      return;
+    }
+
+    if (amountBid <= currentBid) {
+      setMsgNotif("Jumlah tidak boleh kurang atau sama dengan current bid");
+      setSeverityNotif("error")
+      setOpen(true);
+      return;
+    }
 
     const body = JSON.stringify({
       UserID: parseInt(UserID, 10),
       ProductID: parseInt(productID, 10),
-      Amount: parseInt(event.target.amount.value, 10),
+      Amount: parseInt(amountBid, 10),
     });
 
-    console.log("amount", event.target.amount.value)
+    console.log("amount", amountBid)
     fetch(`http://localhost:8080/auction/bid`, {
       headers: {
         Accept: "application/json",
@@ -103,20 +137,23 @@ function PDPDetail() {
       .then((res) => res.json())
       .then((result) => {
         console.log("result", result);
+        const { ResultStatus } = result;
+        const { IsSuccess, Message } = ResultStatus;
+
+        setMsgNotif(Message);
+        sessionStorage.setItem("isSuccessBidNotif", true)
+
+        if (IsSuccess) {
+          setSeverityNotif("success")
+        } else {
+          setSeverityNotif("error")
+        }
         setOpen(true);
       })
       .catch((err) => {
         console.log("catch", err);
       });
   });
-
-  const handleClose = (event, reason) => {
-    if (reason === "clickaway") {
-      return;
-    }
-
-    setOpen(false);
-  };
 
   const setProduct = useCallback((product) => {
     setProductImageURL(product.ImageURL)
@@ -126,6 +163,8 @@ function PDPDetail() {
   const setAuction = useCallback((auction) => {
     setAuctionMultiplier(auction.Multiplier);
     setAuctionWinnerUserID(auction.WinnerUserID);
+    setAuctionStatus(auction.Status);
+    setAuctionID(auction.ID)
   }, []);
 
   const setHighestBidder = useCallback((highestBidder) => {
@@ -140,14 +179,15 @@ function PDPDetail() {
         console.log("result", result);
         const { ProductDetail } = result;
         console.log("ProductDetail", ProductDetail);
-        const { Product, Auction, HighestBidder, Countdown: CountdownLeft } = ProductDetail
+        const { Product, Auction, HighestBidder, Countdown: CountdownLeft, HighestBid } = ProductDetail
         console.log(Product.ImageURL)
         setProduct(Product);
         setAuction(Auction);
         setHighestBidder(HighestBidder);
         console.log(Date.now() + (CountdownLeft * 1000))
         setCountdownRemaining(CountdownLeft);
-        setRunningCountdown(true)
+        setRunningCountdown(true);
+        // setCurrentBid(HighestBid);
       })
       .catch((err) => {
         console.log("catch", err);
@@ -156,7 +196,19 @@ function PDPDetail() {
 
   useEffect(() => {
     getProduct();
-  }, []);
+    onSnapshot(collection(firestoreDB, "auction"), (snapshot) => {
+      // eslint-disable-next-line array-callback-return
+      snapshot.docs.map(doc => {
+        const data = doc.data();
+        console.log(data, data.id === auctionID && currentBid < data.current_bid)
+        if (data.id === auctionID && currentBid < data.current_bid) {
+          setCurrentBid(data.current_bid);
+          console.log(currentBid);
+        }
+
+      })
+    })
+  }, [auctionID]);
 
   const renderCountdown = () => (
     <Countdown date={Date.now() + countdownRemaining}>
@@ -164,8 +216,15 @@ function PDPDetail() {
     </Countdown>
   )
 
+  const renderAlertNotif = useCallback(() => (
+    <Alert onClose={handleClose} severity={severityNotif} sx={{ width: "100%" }}>
+      {msgNotif}
+    </Alert>
+  ), [msgNotif, severityNotif, handleClose])
+
   return (
     <DashboardLayout>
+      <DashboardNavbar />
       <SuiBox mt={5} mb={3}>
         <Grid container>
           <Grid item xs={4}>
@@ -198,7 +257,7 @@ function PDPDetail() {
                 <Stack direction="row" spacing={1}>
                   {highestBidderUserID !== UserID ? <Chip label="Bidding" color="primary" variant="outlined" /> : null}
                   {highestBidderUserID === UserID ? <Chip label="Highest Bidder" color="success" variant="outlined" /> : null}
-                  {highestBidderUserID !== 0 ? <Chip label={highestBidderUsername} color="success" /> : null}
+                  {highestBidderUserID !== 0 && auctionStatus !== 1 ? <Chip label={highestBidderUsername} color="success" /> : null}
                 </Stack>
               </CardContent>
               <CardActions>
@@ -220,9 +279,7 @@ function PDPDetail() {
                   autoHideDuration={6000}
                   onClose={handleClose}
                 >
-                  <Alert onClose={handleClose} severity="success" sx={{ width: "100%" }}>
-                    THANK YOU!!! You success bidding this item
-                  </Alert>
+                  {renderAlertNotif()}
                 </Snackbar>
               </CardActions>
             </Card>
