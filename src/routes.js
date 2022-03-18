@@ -162,7 +162,7 @@ const routes = [
     noCollapse: true,
   },
   {
-    type: "collapse",
+    type: "invisible",
     name: "PDP Detail Dummy",
     key: "pdp_detail_dummy",
     route: "/auction/detail",
